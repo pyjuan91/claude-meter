@@ -1,0 +1,16 @@
+/*
+ * styles.css — Minimal host-level styles for the widget container.
+ * All widget-internal styles live inside the Shadow DOM (content.js).
+ * This file only ensures the host element doesn't interfere with the page.
+ */
+
+#claude-usage-host {
+  all: initial;
+  position: fixed;
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+#claude-usage-host * {
+  pointer-events: auto;
+}
