@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-const utils = require('../utils.js');
+const utils = require('../src/utils.js');
 
 describe('popup utility functions (via utils)', () => {
   describe('getUtilColor used in popup', () => {

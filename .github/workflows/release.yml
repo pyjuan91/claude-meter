@@ -19,7 +19,7 @@ jobs:
       - run: npm run test:ci
 
       - name: Package extension
-        run: zip -r claude-usage-monitor.zip manifest.json utils.js content.js popup.js background.js browser-polyfill.js styles.css popup.html icons/
+        run: cd src && zip -r ../claude-usage-monitor.zip manifest.json *.js *.css *.html icons/
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

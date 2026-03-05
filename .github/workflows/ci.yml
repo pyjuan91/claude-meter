@@ -19,16 +19,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate manifest.json is valid JSON
-        run: python3 -m json.tool manifest.json > /dev/null
+        run: python3 -m json.tool src/manifest.json > /dev/null
       - name: Check all referenced files exist
         run: |
-          for f in utils.js content.js popup.js background.js browser-polyfill.js styles.css popup.html; do
+          for f in src/utils.js src/content.js src/popup.js src/background.js src/browser-polyfill.js src/styles.css src/popup.html; do
             if [ ! -f "$f" ]; then
               echo "Missing file: $f"
               exit 1
             fi
           done
-          for icon in icons/icon-16.png icons/icon-48.png icons/icon-128.png; do
+          for icon in src/icons/icon-16.png src/icons/icon-48.png src/icons/icon-128.png; do
             if [ ! -f "$icon" ]; then
               echo "Missing icon: $icon"
               exit 1

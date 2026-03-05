@@ -47,7 +47,7 @@ beforeEach(() => {
   // Load background.js by evaluating it
   const fs = require('fs');
   const path = require('path');
-  const code = fs.readFileSync(path.join(__dirname, '..', 'background.js'), 'utf-8');
+  const code = fs.readFileSync(path.join(__dirname, '..', 'src', 'background.js'), 'utf-8');
   // eslint-disable-next-line no-eval
   const fn = new Function('chrome', code);
   fn(chrome);

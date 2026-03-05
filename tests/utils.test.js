@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-const utils = require('../utils.js');
+const utils = require('../src/utils.js');
 
 describe('getUtilColor', () => {
   it('returns green/orange for <=50% (dark)', () => {
