@@ -87,24 +87,11 @@
   }
 
   function getOrgFromCookies() {
-    const cookies = document.cookie.split(';');
-    for (const c of cookies) {
-      const [name, ...rest] = c.trim().split('=');
-      if (name === 'lastActiveOrg') {
-        const val = decodeURIComponent(rest.join('='));
-        // Could be a UUID directly or JSON
-        const uuidMatch = val.match(
-          /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i
-        );
-        return uuidMatch ? uuidMatch[0] : null;
-      }
-    }
-    return null;
+    return UsageUtils.getOrgFromCookies(document.cookie);
   }
 
   function extractOrgFromUrl(url) {
-    const m = url.match(/\/api\/organizations\/([0-9a-f-]{36})/i);
-    return m ? m[1] : null;
+    return UsageUtils.extractOrgFromUrl(url);
   }
 
   // Intercept fetch to grab org ID from any API call
@@ -194,27 +181,7 @@
 
   // ── Time formatting ───────────────────────────────────────────────
   function formatTimeUntil(isoStr) {
-    if (!isoStr) return '';
-    const resetTime = new Date(isoStr).getTime();
-    const now = Date.now();
-    const diff = resetTime - now;
-    if (diff <= 0) return 'Resetting soon';
-
-    const hours = Math.floor(diff / 3_600_000);
-    const mins = Math.floor((diff % 3_600_000) / 60_000);
-
-    if (hours >= 24) {
-      const date = new Date(isoStr);
-      const day = date.toLocaleDateString('en-US', { weekday: 'short' });
-      const time = date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-        hour12: true
-      });
-      return `Resets ${day} ${time}`;
-    }
-    if (hours > 0) return `Resets in ${hours}h ${mins}m`;
-    return `Resets in ${mins}m`;
+    return UsageUtils.formatTimeUntil(isoStr);
   }
 
   function formatLastUpdated() {
@@ -251,9 +218,7 @@
   let countdownInterval = null;
 
   function getUtilColor(pct, dark) {
-    if (pct > 80) return dark ? '#E5524A' : '#D03E3E';
-    if (pct > 50) return dark ? '#E0A020' : '#D4940A';
-    return dark ? '#D4835E' : '#C15F3C';
+    return UsageUtils.getUtilColor(pct, dark);
   }
 
   function buildWidget() {
@@ -555,19 +520,8 @@
     const pct = data?.five_hour?.utilization ?? 0;
     const dark = isDarkMode();
     const color = getUtilColor(pct, dark);
-    // SVG donut ring
-    const radius = 12;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (pct / 100) * circumference;
-    return `<svg width="28" height="28" viewBox="0 0 32 32">
-      <circle cx="16" cy="16" r="${radius}" fill="none" stroke="${trackColor}" stroke-width="3"/>
-      <circle cx="16" cy="16" r="${radius}" fill="none" stroke="${color}" stroke-width="3"
-        stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"
-        stroke-linecap="round" transform="rotate(-90 16 16)"/>
-      <text x="16" y="17" text-anchor="middle" dominant-baseline="middle"
-        font-size="8" font-weight="600" fill="${isDarkMode() ? '#ECECEC' : '#1F1E1D'}"
-        font-family="-apple-system, BlinkMacSystemFont, sans-serif">${Math.round(pct)}</text>
-    </svg>`;
+    const textColor = dark ? '#ECECEC' : '#1F1E1D';
+    return UsageUtils.buildDonutIcon(pct, color, trackColor, textColor);
   }
 
   // ── Sidebar toggle button (injected into Claude's nav) ──────────

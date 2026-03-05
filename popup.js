@@ -4,23 +4,11 @@ const STORAGE_KEY_USAGE = 'claude_usage_data';
 
 function getUtilColor(pct) {
   const dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  if (pct > 80) return dark ? '#E5524A' : '#D03E3E';
-  if (pct > 50) return dark ? '#E0A020' : '#D4940A';
-  return dark ? '#D4835E' : '#C15F3C';
+  return UsageUtils.getUtilColor(pct, dark);
 }
 
 function formatTimeUntil(isoStr) {
-  if (!isoStr) return '';
-  const diff = new Date(isoStr).getTime() - Date.now();
-  if (diff <= 0) return 'Resetting soon';
-  const hours = Math.floor(diff / 3_600_000);
-  const mins = Math.floor((diff % 3_600_000) / 60_000);
-  if (hours >= 24) {
-    const d = new Date(isoStr);
-    return `Resets ${d.toLocaleDateString('en-US', { weekday: 'short' })} ${d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}`;
-  }
-  if (hours > 0) return `Resets in ${hours}h ${mins}m`;
-  return `Resets in ${mins}m`;
+  return UsageUtils.formatTimeUntil(isoStr);
 }
 
 function buildBar(label, pct, resetAt) {

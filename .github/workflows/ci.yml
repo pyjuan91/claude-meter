@@ -1,0 +1,37 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:ci
+
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate manifest.json is valid JSON
+        run: python3 -m json.tool manifest.json > /dev/null
+      - name: Check all referenced files exist
+        run: |
+          for f in utils.js content.js popup.js background.js browser-polyfill.js styles.css popup.html; do
+            if [ ! -f "$f" ]; then
+              echo "Missing file: $f"
+              exit 1
+            fi
+          done
+          for icon in icons/icon-16.png icons/icon-48.png icons/icon-128.png; do
+            if [ ! -f "$icon" ]; then
+              echo "Missing icon: $icon"
+              exit 1
+            fi
+          done
+          echo "All referenced files exist."
