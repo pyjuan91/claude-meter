@@ -11,16 +11,6 @@
   const NOTIFICATION_KEY = 'claude_usage_notified_80';
   const PREFIX = 'claude-usage';
 
-  // ── i18n setup ───────────────────────────────────────────────────
-  const STORAGE_KEY_LANG = 'claude_usage_lang';
-
-  function detectAndSetLang() {
-    var lang = UsageI18n.detectLang();
-    UsageI18n.setLang(lang);
-    storage.set(STORAGE_KEY_LANG, lang);
-  }
-  detectAndSetLang();
-
   // ── Storage helper (works with both chrome and browser APIs) ──────
   const storage = {
     async get(key) {
@@ -39,6 +29,16 @@
       });
     }
   };
+
+  // ── i18n setup ───────────────────────────────────────────────────
+  const STORAGE_KEY_LANG = 'claude_usage_lang';
+
+  function detectAndSetLang() {
+    var lang = UsageI18n.detectLang();
+    UsageI18n.setLang(lang);
+    storage.set(STORAGE_KEY_LANG, lang);
+  }
+  detectAndSetLang();
 
   // ── Org ID extraction ─────────────────────────────────────────────
   async function extractOrgId() {
