@@ -9,7 +9,9 @@
   const STORAGE_KEY_ORG = 'claude_usage_org_id';
   const STORAGE_KEY_USAGE = 'claude_usage_data';
   const NOTIFICATION_KEY = 'claude_usage_notified_80';
+  const STORAGE_KEY_WIDGET_BOTTOM = 'claude_usage_widget_bottom';
   const PREFIX = 'claude-usage';
+  const WIDGET_BOUNDARY_PX = 16;
 
   // ── Storage helper (works with both chrome and browser APIs) ──────
   const storage = {
@@ -226,6 +228,10 @@
   let isCollapsed = false;
   let isForceCollapsed = false;
   let countdownInterval = null;
+  let widgetBottom = WIDGET_BOUNDARY_PX; // default bottom position
+  let isDragging = false;
+  let dragStartY = 0;
+  let dragStartBottom = 0;
 
   function getUtilColor(pct, dark) {
     return UsageUtils.getUtilColor(pct, dark);
@@ -287,7 +293,7 @@
 
       .widget-expanded {
         position: fixed;
-        bottom: 16px;
+        bottom: ${widgetBottom}px;
         left: ${leftPos}px;
         z-index: 2147483647;
         background: ${bgColor};
@@ -300,10 +306,29 @@
         color: ${textPrimary};
         box-shadow: ${dark ? '0 2px 8px rgba(0,0,0,0.3)' : '0 1px 4px rgba(0,0,0,0.08)'};
         line-height: 1.4;
-        transition: opacity 0.2s, left 0.2s ease;
+        transition: opacity 0.2s, left 0.35s cubic-bezier(0.25, 0.1, 0.25, 1.0);
         pointer-events: auto;
       }
       .widget-expanded.hidden { display: none; }
+
+      .drag-handle {
+        cursor: grab;
+        padding: 2px 0 6px;
+        display: flex;
+        justify-content: center;
+        user-select: none;
+      }
+      .drag-handle:active { cursor: grabbing; }
+      .drag-handle-dots {
+        width: 32px;
+        height: 4px;
+        border-radius: 2px;
+        background: ${borderColor};
+        transition: background 0.15s;
+      }
+      .drag-handle:hover .drag-handle-dots {
+        background: ${textSecondary};
+      }
 
       .row { margin-bottom: 10px; }
       .row:last-of-type { margin-bottom: 6px; }
@@ -414,6 +439,7 @@
 
     // ── Expanded widget ──
     html += `<div class="widget-expanded${effectiveCollapsed ? ' hidden' : ''}" id="expanded">`;
+    html += `<div class="drag-handle" id="drag-handle"><div class="drag-handle-dots"></div></div>`;
 
     if (!data && !fetchError) {
       // Loading
@@ -446,6 +472,52 @@
       storage.set(STORAGE_KEY_COLLAPSED, true);
       renderWidget();
       renderSidebarToggle();
+    });
+
+    // ── Drag handling ──
+    const dragHandle = shadowRoot.getElementById('drag-handle');
+    dragHandle?.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      isDragging = true;
+      dragStartY = e.clientY;
+      dragStartBottom = widgetBottom;
+
+      const onMouseMove = (e) => {
+        if (!isDragging) return;
+        const deltaY = dragStartY - e.clientY; // up = positive delta = increase bottom
+        let newBottom = dragStartBottom + deltaY;
+
+        // Get widget height for boundary calculation
+        const expanded = shadowRoot.getElementById('expanded');
+        const widgetHeight = expanded ? expanded.offsetHeight : 200;
+
+        // Boundary: bottom = 16px from viewport bottom, top = below chat title bar
+        const minBottom = WIDGET_BOUNDARY_PX;
+        const titleBar = document.querySelector('[data-testid="chat-title-button"]')?.closest('.flex.w-full.items-center.justify-between');
+        const topBoundary = titleBar ? titleBar.getBoundingClientRect().bottom : WIDGET_BOUNDARY_PX;
+        const maxBottom = window.innerHeight - widgetHeight - topBoundary;
+
+        newBottom = Math.max(minBottom, Math.min(maxBottom, newBottom));
+        widgetBottom = newBottom;
+
+        // Directly update position for smooth dragging (no full re-render)
+        if (expanded) {
+          expanded.style.transition = 'none';
+          expanded.style.bottom = `${widgetBottom}px`;
+        }
+      };
+
+      const onMouseUp = () => {
+        if (isDragging) {
+          isDragging = false;
+          storage.set(STORAGE_KEY_WIDGET_BOTTOM, widgetBottom);
+        }
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      };
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
     });
 
     // Update sidebar toggle icon state
@@ -709,15 +781,45 @@
 
   // ── Sidebar observers ────────────────────────────────────────────
   let sidebarObserversAttached = false;
+  let lastSidebarWidth = -1;
+
+  // Detect sidebar width change and smoothly update widget position via CSS transition
+  function onSidebarChange() {
+    const sidebarWidth = getSidebarInfo().width;
+    if (sidebarWidth === lastSidebarWidth) return;
+    lastSidebarWidth = sidebarWidth;
+
+    const expanded = shadowRoot?.getElementById('expanded');
+    if (expanded) {
+      expanded.style.left = `${sidebarWidth + 8}px`;
+    }
+
+    // Also schedule a full render to sync other state (auto-collapse, etc.)
+    scheduleRender();
+  }
 
   function observeSidebar() {
     if (sidebarObserversAttached) return;
     const { element } = getSidebarInfo();
     if (element) {
       sidebarObserversAttached = true;
-      new ResizeObserver(() => scheduleRender()).observe(element);
-      new MutationObserver(() => scheduleRender())
+
+      // Observe the nav and its ancestors for resize/style changes
+      const resizeObs = new ResizeObserver(() => onSidebarChange());
+      resizeObs.observe(element);
+
+      let parent = element.parentElement;
+      while (parent && parent !== document.body) {
+        resizeObs.observe(parent);
+        parent = parent.parentElement;
+      }
+
+      // Catch attribute changes (class toggles for open/close)
+      new MutationObserver(() => onSidebarChange())
         .observe(element, { attributes: true, attributeFilter: ['style', 'class'] });
+
+      // Listen for transition end on sidebar to ensure final position is correct
+      element.addEventListener('transitionend', () => onSidebarChange());
     } else {
       setTimeout(observeSidebar, 1000);
     }
@@ -735,6 +837,12 @@
     // Restore collapsed state
     const collapsed = await storage.get(STORAGE_KEY_COLLAPSED);
     isCollapsed = collapsed === true;
+
+    // Restore widget vertical position
+    const savedBottom = await storage.get(STORAGE_KEY_WIDGET_BOTTOM);
+    if (savedBottom != null) {
+      widgetBottom = savedBottom;
+    }
 
     buildWidget();
     observeTheme();
