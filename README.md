@@ -2,6 +2,16 @@
 
 Browser extension that displays claude.ai usage limits as a floating widget on the chat page.
 
+
+<p float="middle">
+  <img width="45%" alt="Light Theme" src="https://github.com/user-attachments/assets/694bf3fe-9115-4007-a80b-4f08583a8e84" />
+  <img width="45%" alt="Dark Theme" src="https://github.com/user-attachments/assets/66bb0fb0-4453-4c44-8ecb-d22ba7ea1139" />
+</p>
+
+## Chrome Extension Store
+
+[Link](https://chromewebstore.google.com/detail/claude-usage-monitor/ijefjecdkjhhghkpngakollggloipnlg)
+
 ## Features
 
 - **Real-time usage tracking** — 5-hour and 7-day utilization with progress bars
@@ -18,7 +28,7 @@ Browser extension that displays claude.ai usage limits as a floating widget on t
 
 The extension fetches `GET /api/organizations/{org_id}/usage` using the browser's session cookies (same-origin, no token needed). Org ID is extracted from cookies, the organizations API, `__NEXT_DATA__`, or URL interception — cached and auto-invalidated on auth errors. Polls every 60s while the tab is visible.
 
-## Install
+## Testing
 
 **Chrome:** `chrome://extensions` → Developer mode → Load unpacked → select this folder
 
