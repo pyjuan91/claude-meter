@@ -7,7 +7,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --reporter=verbose",
     "test:watch": "vitest",
-    "zip": "cd src && zip -r ../claude-usage-monitor.zip manifest.json *.js *.css *.html icons/"
+    "zip": "cd src && zip -r ../claude-usage-monitor-v$(node -p \"require('../package.json').version\").zip manifest.json *.js *.css *.html icons/"
   },
   "devDependencies": {
     "vitest": "^3.0.0"
