@@ -639,16 +639,16 @@
     const effectiveCollapsed = isCollapsed || isForceCollapsed;
 
     // Donut SVG for the button
-    const radius = 8;
+    const radius = 10;
     const circumference = 2 * Math.PI * radius;
     const dashOffset = circumference - (pct / 100) * circumference;
-    const donutSvg = `<svg width="20" height="20" viewBox="0 0 24 24">
+    const donutSvg = `<svg width="24" height="24" viewBox="0 0 24 24">
       <circle cx="12" cy="12" r="${radius}" fill="none" stroke="${trackColor}" stroke-width="2.5"/>
       <circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.5"
         stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
         stroke-linecap="round" transform="rotate(-90 12 12)"/>
       <text x="12" y="12.5" text-anchor="middle" dominant-baseline="middle"
-        font-size="7" font-weight="700" fill="${textColor}"
+        font-size="8" font-weight="700" fill="${textColor}"
         font-family="-apple-system, BlinkMacSystemFont, sans-serif">${Math.round(pct)}</text>
     </svg>`;
 
@@ -656,7 +656,7 @@
     if (!btn) {
       btn = document.createElement('button');
       btn.id = SIDEBAR_TOGGLE_ID;
-      btn.title = UsageI18n.t('usageMonitor');
+      btn.style.position = 'relative';
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -703,14 +703,46 @@
 
     // Store current hoverBg on the element for hover handlers
     btn._hoverBg = hoverBg;
+    btn._tooltipLabel = UsageI18n.t('usageMonitor');
     if (!btn._hoverAttached) {
       btn._hoverAttached = true;
       btn.addEventListener('mouseenter', () => {
         btn.style.background = btn._hoverBg;
+        // Show native-style tooltip to the right of the button
+        let tip = btn.querySelector('.cum-tip');
+        if (!tip) {
+          tip = document.createElement('span');
+          tip.className = 'cum-tip';
+          tip.style.cssText = `
+            position: fixed;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 2147483647;
+            opacity: 0;
+            transition: opacity 0.15s;
+          `;
+          btn.appendChild(tip);
+        }
+        tip.style.background = '#3D3929';
+        tip.style.color = '#FFFFF5';
+        tip.textContent = btn._tooltipLabel;
+        // Position to the right of the button
+        const rect = btn.getBoundingClientRect();
+        tip.style.left = `${rect.right + 8}px`;
+        tip.style.top = `${rect.top + rect.height / 2}px`;
+        tip.style.transform = 'translateY(-50%)';
+        requestAnimationFrame(() => { tip.style.opacity = '1'; });
       });
       btn.addEventListener('mouseleave', () => {
         const eff = isCollapsed || isForceCollapsed;
         btn.style.background = eff ? 'transparent' : btn._hoverBg;
+        const tip = btn.querySelector('.cum-tip');
+        if (tip) tip.remove();
       });
     }
   }
