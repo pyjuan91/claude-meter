@@ -511,6 +511,11 @@
           expanded.style.transition = 'none';
           expanded.style.bottom = `${widgetBottom}px`;
         }
+
+        // Keep tutorial hint following the widget during step 2 drag
+        if (tutorialStep === 2) {
+          updateTutorialPosition();
+        }
       };
 
       const onMouseUp = () => {
@@ -800,6 +805,8 @@
   let lastSidebarWidth = -1;
 
   // Detect sidebar width change and smoothly update widget position via CSS transition
+  let sidebarPollingId = null;
+
   function onSidebarChange() {
     const sidebarWidth = getSidebarInfo().width;
     if (sidebarWidth === lastSidebarWidth) return;
@@ -812,6 +819,24 @@
 
     // Also schedule a full render to sync other state (auto-collapse, etc.)
     scheduleRender();
+  }
+
+  // Poll sidebar position during CSS transitions for smooth tracking (Chrome
+  // throttles ResizeObserver so it may fire only at the end of the animation)
+  function startSidebarPolling() {
+    if (sidebarPollingId) return;
+    let frameCount = 0;
+    const maxFrames = 30; // ~500ms at 60fps — enough for most transitions
+    function poll() {
+      onSidebarChange();
+      frameCount++;
+      if (frameCount < maxFrames) {
+        sidebarPollingId = requestAnimationFrame(poll);
+      } else {
+        sidebarPollingId = null;
+      }
+    }
+    sidebarPollingId = requestAnimationFrame(poll);
   }
 
   function observeSidebar() {
@@ -830,9 +855,21 @@
         parent = parent.parentElement;
       }
 
-      // Catch attribute changes (class toggles for open/close)
-      new MutationObserver(() => onSidebarChange())
-        .observe(element, { attributes: true, attributeFilter: ['style', 'class'] });
+      // Catch attribute changes (class toggles for open/close) on nav AND ancestors
+      // In Chrome, the sidebar toggle often changes a class on a parent container,
+      // not the nav itself — so we must observe the full ancestor chain.
+      const mutObs = new MutationObserver(() => {
+        onSidebarChange();
+        // Start RAF polling to track position smoothly during the CSS transition
+        startSidebarPolling();
+      });
+      mutObs.observe(element, { attributes: true, attributeFilter: ['style', 'class'] });
+
+      let mutParent = element.parentElement;
+      while (mutParent && mutParent !== document.body) {
+        mutObs.observe(mutParent, { attributes: true, attributeFilter: ['style', 'class'] });
+        mutParent = mutParent.parentElement;
+      }
 
       // Listen for transition end on sidebar to ensure final position is correct
       element.addEventListener('transitionend', () => onSidebarChange());
@@ -1135,6 +1172,57 @@
 
     // Only Skip button — no Next. Steps advance by real interaction.
     tutorialShadow.getElementById('tutorial-skip')?.addEventListener('click', () => finishTutorial());
+  }
+
+  // Lightweight position-only update for tutorial during drag (no DOM rebuild)
+  function updateTutorialPosition() {
+    if (!tutorialShadow) return;
+    const targetRect = getTutorialTargetRect(tutorialStep);
+    if (!targetRect) return;
+
+    const pad = 6;
+    const sx = targetRect.left - pad;
+    const sy = targetRect.top - pad;
+    const sw = targetRect.width + pad * 2;
+    const sh = targetRect.height + pad * 2;
+    const sr = 10;
+
+    // Update spotlight mask and ring rects
+    const mask = tutorialShadow.querySelector('#spotlight-mask rect:last-child');
+    const ring = tutorialShadow.querySelector('.spotlight-ring');
+    if (mask) {
+      mask.setAttribute('x', sx);
+      mask.setAttribute('y', sy);
+      mask.setAttribute('width', sw);
+      mask.setAttribute('height', sh);
+      mask.setAttribute('rx', sr);
+    }
+    if (ring) {
+      ring.setAttribute('x', sx - 2);
+      ring.setAttribute('y', sy - 2);
+      ring.setAttribute('width', sw + 4);
+      ring.setAttribute('height', sh + 4);
+      ring.setAttribute('rx', sr + 2);
+    }
+
+    // Update tooltip position
+    const tooltip = tutorialShadow.querySelector('.tooltip');
+    const arrow = tutorialShadow.querySelector('.tooltip-arrow');
+    if (tooltip) {
+      const tooltipH = 280; // step 2 height
+      const viewH = window.innerHeight;
+      const viewPad = 12;
+      const left = targetRect.right + 16;
+      const idealTop = targetRect.top + targetRect.height / 2 - tooltipH / 2;
+      const clampedTop = Math.max(viewPad, Math.min(viewH - tooltipH - viewPad, idealTop));
+      tooltip.style.left = `${left}px`;
+      tooltip.style.top = `${clampedTop}px`;
+
+      if (arrow) {
+        const arrowTop = targetRect.top + targetRect.height / 2 - clampedTop;
+        arrow.style.top = `${arrowTop}px`;
+      }
+    }
   }
 
   // ── Confetti ─────────────────────────────────────────────────────
