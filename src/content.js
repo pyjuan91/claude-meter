@@ -198,6 +198,16 @@
     return UsageUtils.formatTimeUntil(isoStr);
   }
 
+  // Check if 5-hour usage is high but will reset soon (within 30 min)
+  function isResettingSoon(data) {
+    if (!data?.five_hour) return false;
+    if ((data.five_hour.utilization ?? 0) < 80) return false;
+    const resetStr = data.five_hour.resets_at;
+    if (!resetStr) return false;
+    const diff = new Date(resetStr).getTime() - Date.now();
+    return diff > 0 && diff <= 30 * 60_000;
+  }
+
   function formatLastUpdated() {
     if (!lastFetchTime) return '';
     const diff = Math.floor((Date.now() - lastFetchTime) / 60_000);
@@ -541,11 +551,13 @@
 
   function buildUsageRows(data, textSecondary, trackColor, dark) {
     let html = '';
+    const resetSoon = isResettingSoon(data);
+    const resetSoonColor = dark ? '#6BBF6B' : '#4A9E4A';
 
     // 5-hour
     if (data.five_hour) {
       const pct = data.five_hour.utilization ?? 0;
-      const color = getUtilColor(pct, dark);
+      const color = resetSoon ? resetSoonColor : getUtilColor(pct, dark);
       html += `<div class="row">
         <div class="row-label">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="${textSecondary}"><path d="M8 1a7 7 0 110 14A7 7 0 018 1zm0 1.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM8 3.75a.75.75 0 01.75.75v3.19l2.03 2.03a.75.75 0 01-1.06 1.06l-2.22-2.22a.75.75 0 01-.25-.56V4.5A.75.75 0 018 3.75z"/></svg>
@@ -555,7 +567,7 @@
           <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div>
           <span class="bar-pct">${Math.round(pct)}%</span>
         </div>
-        <div class="reset-text">${formatTimeUntil(data.five_hour.resets_at)}</div>
+        <div class="reset-text"${resetSoon ? ` style="color:${resetSoonColor};font-weight:600"` : ''}>${formatTimeUntil(data.five_hour.resets_at)}</div>
       </div>`;
     }
 
@@ -642,9 +654,15 @@
     const radius = 10;
     const circumference = 2 * Math.PI * radius;
     const dashOffset = circumference - (pct / 100) * circumference;
+    const resetSoon = isResettingSoon(data);
+    const glowColor = dark ? '#6BBF6B' : '#4A9E4A';
     const donutSvg = `<svg width="24" height="24" viewBox="0 0 24 24">
+      ${resetSoon ? `<circle cx="12" cy="12" r="11.5" fill="none" stroke="${glowColor}" stroke-width="1.5" opacity="0.6">
+        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="2s" repeatCount="indefinite"/>
+        <animate attributeName="stroke-width" values="1;2;1" dur="2s" repeatCount="indefinite"/>
+      </circle>` : ''}
       <circle cx="12" cy="12" r="${radius}" fill="none" stroke="${trackColor}" stroke-width="2.5"/>
-      <circle cx="12" cy="12" r="${radius}" fill="none" stroke="${color}" stroke-width="2.5"
+      <circle cx="12" cy="12" r="${radius}" fill="none" stroke="${resetSoon ? glowColor : color}" stroke-width="2.5"
         stroke-dasharray="${circumference}" stroke-dashoffset="${dashOffset}"
         stroke-linecap="round" transform="rotate(-90 12 12)"/>
       <text x="12" y="12.5" text-anchor="middle" dominant-baseline="middle"
@@ -703,7 +721,9 @@
 
     // Store current hoverBg on the element for hover handlers
     btn._hoverBg = hoverBg;
-    btn._tooltipLabel = UsageI18n.t('usageMonitor');
+    btn._tooltipLabel = resetSoon
+      ? `${UsageI18n.t('usageMonitor')} — ${UsageI18n.t('resettingSoon')}`
+      : UsageI18n.t('usageMonitor');
     if (!btn._hoverAttached) {
       btn._hoverAttached = true;
       btn.addEventListener('mouseenter', () => {

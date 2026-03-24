@@ -1,6 +1,6 @@
 {
   "name": "claude-usage-monitor",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "description": "Browser extension that displays Claude.ai usage limits as a floating widget.",
   "scripts": {
