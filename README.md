@@ -1,4 +1,4 @@
-# Claude Usage Monitor
+# Claude Meter
 
 Browser extension that displays claude.ai usage limits as a floating widget on the chat page.
 
@@ -10,7 +10,7 @@ Browser extension that displays claude.ai usage limits as a floating widget on t
 
 ## Chrome Extension Store
 
-[Link](https://chromewebstore.google.com/detail/claude-usage-monitor/ijefjecdkjhhghkpngakollggloipnlg)
+[Link](https://chromewebstore.google.com/detail/claude-meter/ijefjecdkjhhghkpngakollggloipnlg)
 
 ## Features
 

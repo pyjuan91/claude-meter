@@ -1,4 +1,4 @@
-/* utils.js — Shared pure functions for Claude Usage Monitor */
+/* utils.js — Shared pure functions for Claude Meter */
 
 (function (exports) {
   'use strict';

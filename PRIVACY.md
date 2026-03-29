@@ -1,10 +1,10 @@
-# Privacy Policy — Claude Usage Monitor
+# Privacy Policy — Claude Meter
 
 **Last updated:** March 5, 2026
 
 ## Data Collection
 
-Claude Usage Monitor does **not** collect, transmit, or share any personal data. All data stays on your device.
+Claude Meter does **not** collect, transmit, or share any personal data. All data stays on your device.
 
 ## What the extension stores locally
 
@@ -23,4 +23,4 @@ You can clear all stored data at any time by removing the extension. No data per
 
 ## Contact
 
-If you have questions about this policy, open an issue at [github.com/pyjuan91/claude-usage-monitor](https://github.com/pyjuan91/claude-usage-monitor/issues).
+If you have questions about this policy, open an issue at [github.com/pyjuan91/claude-meter](https://github.com/pyjuan91/claude-meter/issues).

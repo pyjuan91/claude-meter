@@ -1,4 +1,4 @@
-/* content.js — Claude Usage Monitor widget */
+/* content.js — Claude Meter widget */
 
 (function () {
   'use strict';

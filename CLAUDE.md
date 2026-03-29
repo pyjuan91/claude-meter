@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Claude Usage Monitor is a browser extension (Chrome MV3 + Firefox) that displays Claude.ai usage limits as a floating widget. It shows real-time 5-hour and 7-day utilization with progress bars, model breakdowns (Opus/Sonnet/Cowork), and optional extra usage tracking. Published on the Chrome Web Store.
+Claude Meter is a browser extension (Chrome MV3 + Firefox) that displays Claude.ai usage limits as a floating widget. It shows real-time 5-hour and 7-day utilization with progress bars, model breakdowns (Opus/Sonnet/Cowork), and optional extra usage tracking. Published on the Chrome Web Store.
 
 ## Commands
 

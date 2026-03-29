@@ -1,5 +1,5 @@
 {
-  "name": "claude-usage-monitor",
+  "name": "claude-meter",
   "version": "1.4.0",
   "private": true,
   "description": "Browser extension that displays Claude.ai usage limits as a floating widget.",
@@ -7,7 +7,7 @@
     "test": "vitest run",
     "test:ci": "vitest run --reporter=verbose",
     "test:watch": "vitest",
-    "zip": "cd src && zip -r ../claude-usage-monitor-v$(node -p \"require('../package.json').version\").zip manifest.json *.js *.css *.html icons/"
+    "zip": "cd src && zip -r ../claude-meter-v$(node -p \"require('../package.json').version\").zip manifest.json *.js *.css *.html icons/"
   },
   "devDependencies": {
     "vitest": "^3.0.0"

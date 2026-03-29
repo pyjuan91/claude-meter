@@ -1,4 +1,4 @@
-/* background.js — Service worker for Claude Usage Monitor */
+/* background.js — Service worker for Claude Meter */
 
 const STORAGE_KEY_ORG = 'claude_usage_org_id';
 const STORAGE_KEY_USAGE = 'claude_usage_data';

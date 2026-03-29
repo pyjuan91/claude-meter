@@ -1,4 +1,4 @@
-/* i18n.js — Internationalization for Claude Usage Monitor */
+/* i18n.js — Internationalization for Claude Meter */
 
 (function (exports) {
   'use strict';
