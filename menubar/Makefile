@@ -10,7 +10,7 @@ CONTENTS    := $(APP_DIR)/Contents
 MACOS_DIR   := $(CONTENTS)/MacOS
 RES_DIR     := $(CONTENTS)/Resources
 
-.PHONY: build bundle run clean
+.PHONY: build bundle run clean dmg
 
 # ── Build optimised binary ──────────────────────────────────────────
 build:
@@ -34,6 +34,17 @@ install: bundle
 	@rm -rf "/Applications/$(APP_NAME).app"
 	@cp -R "$(APP_DIR)" "/Applications/$(APP_NAME).app"
 	@echo "✓ Installed"
+
+# ── Package as DMG ──────────────────────────────────────────────────
+DMG_NAME := ClaudeMeter.dmg
+dmg: bundle
+	@echo "→ Creating $(DMG_NAME) …"
+	@rm -f "$(BUILD_DIR)/$(DMG_NAME)"
+	@hdiutil create -volname "Claude Meter" \
+		-srcfolder "$(APP_DIR)" \
+		-ov -format UDZO \
+		"$(BUILD_DIR)/$(DMG_NAME)" > /dev/null
+	@echo "✓ $(BUILD_DIR)/$(DMG_NAME)"
 
 # ── Clean ───────────────────────────────────────────────────────────
 clean:
