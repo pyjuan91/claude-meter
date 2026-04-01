@@ -1,6 +1,6 @@
 # Claude Meter
 
-Browser extension that displays claude.ai usage limits as a floating widget on the chat page.
+Browser extension that displays claude.ai usage limits as a floating widget on the chat page. Also ships a **macOS menu bar app** (`menubar/`) that reads session data from the Claude Desktop app — no browser needed.
 
 
 <p float="middle">
@@ -34,16 +34,30 @@ The extension fetches `GET /api/organizations/{org_id}/usage` using the browser'
 
 **Firefox:** `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → select `manifest.json`
 
+## Menu Bar App (macOS)
+
+Native Swift app that sits in your menu bar. Reads session cookies directly from the Claude Desktop app via Keychain + SQLite — just `make run` and go.
+
+```bash
+cd menubar
+make run          # build + launch
+make install      # copy to /Applications
+```
+
+Requires macOS 13+ and the Claude Desktop app to be logged in.
+
 ## Structure
 
 ```
-├── manifest.json         # MV3 manifest with Firefox gecko settings
-├── background.js         # Service worker: caching, notifications
-├── content.js            # Widget: Shadow DOM, polling, theme detection
-├── styles.css            # Host-level styles
-├── popup.html/js         # Fallback popup
-├── browser-polyfill.js   # Minimal browser/chrome API shim
-└── icons/                # Terracotta clock icons (16/48/128px)
+├── src/                  # Browser extension
+│   ├── manifest.json     # MV3 manifest with Firefox gecko settings
+│   ├── background.js     # Service worker: caching, notifications
+│   ├── content.js        # Widget: Shadow DOM, polling, theme detection
+│   ├── styles.css        # Host-level styles
+│   ├── popup.html/js     # Fallback popup
+│   ├── browser-polyfill.js # Minimal browser/chrome API shim
+│   └── icons/            # Terracotta clock icons (16/48/128px)
+└── menubar/              # macOS menu bar app (Swift, SPM)
 ```
 
 ## License
