@@ -62,8 +62,8 @@ function render(cached) {
   }
 
   if (data.extra_usage?.is_enabled) {
-    const used = (data.extra_usage.used_credits ?? 0).toFixed(2);
-    const limit = (data.extra_usage.monthly_limit ?? 0).toFixed(2);
+    const used = ((data.extra_usage.used_credits ?? 0) / 100).toFixed(2);
+    const limit = ((data.extra_usage.monthly_limit ?? 0) / 100).toFixed(2);
     html += `<div class="row">
       <div class="row-label">${UsageI18n.t('extraUsage')}</div>
       <div class="extra-text">$${used} / $${limit}</div>

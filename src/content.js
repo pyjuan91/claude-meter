@@ -611,8 +611,8 @@
 
     // Extra usage
     if (data.extra_usage?.is_enabled) {
-      const used = (data.extra_usage.used_credits ?? 0).toFixed(2);
-      const limit = (data.extra_usage.monthly_limit ?? 0).toFixed(2);
+      const used = ((data.extra_usage.used_credits ?? 0) / 100).toFixed(2);
+      const limit = ((data.extra_usage.monthly_limit ?? 0) / 100).toFixed(2);
       html += `<div class="row">
         <div class="row-label">
           <svg width="12" height="12" viewBox="0 0 16 16" fill="${textSecondary}"><path d="M8 1.5a6.5 6.5 0 110 13 6.5 6.5 0 010-13zM8 0a8 8 0 100 16A8 8 0 008 0zm.5 4.75a.75.75 0 00-1.5 0v3a.75.75 0 00.22.53l2 2a.75.75 0 101.06-1.06L8.5 7.44V4.75z"/></svg>
