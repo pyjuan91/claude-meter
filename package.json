@@ -7,7 +7,9 @@
     "test": "vitest run",
     "test:ci": "vitest run --reporter=verbose",
     "test:watch": "vitest",
-    "zip": "cd src && zip -r ../claude-meter-v$(node -p \"require('../package.json').version\").zip manifest.json *.js *.css *.html icons/"
+    "zip": "node scripts/zip.js",
+    "zip:chrome": "node scripts/zip.js chrome",
+    "zip:firefox": "node scripts/zip.js firefox"
   },
   "devDependencies": {
     "vitest": "^3.0.0"
